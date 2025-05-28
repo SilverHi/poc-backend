@@ -6,11 +6,11 @@ from io import BytesIO
 
 
 class FileParser:
-    """文件解析器，支持PDF、Markdown和文本文件"""
+    """File parser that supports PDF, Markdown and text files"""
     
     @staticmethod
     def get_file_type(filename: str) -> str:
-        """根据文件扩展名确定文件类型"""
+        """Determine file type based on file extension"""
         ext = os.path.splitext(filename)[1].lower()
         if ext == '.pdf':
             return 'pdf'
@@ -19,11 +19,11 @@ class FileParser:
         elif ext in ['.txt', '.text']:
             return 'text'
         else:
-            return 'text'  # 默认作为文本处理
+            return 'text'  # Default to text processing
     
     @staticmethod
     def parse_pdf(file_content: bytes) -> str:
-        """解析PDF文件内容"""
+        """Parse PDF file content"""
         try:
             pdf_file = BytesIO(file_content)
             pdf_reader = PyPDF2.PdfReader(pdf_file)
@@ -34,27 +34,27 @@ class FileParser:
             
             return text_content.strip()
         except Exception as e:
-            raise ValueError(f"PDF解析失败: {str(e)}")
+            raise ValueError(f"PDF parsing failed: {str(e)}")
     
     @staticmethod
     def parse_markdown(file_content: bytes) -> str:
-        """解析Markdown文件内容"""
+        """Parse Markdown file content"""
         try:
-            # 将bytes转换为字符串
+            # Convert bytes to string
             text_content = file_content.decode('utf-8')
             
-            # 使用markdown库解析，但我们主要需要纯文本
-            # 这里可以选择返回原始markdown或转换为HTML后再提取文本
-            # 为了简单起见，直接返回原始文本
+            # Use markdown library to parse, but we mainly need plain text
+            # Here we can choose to return raw markdown or convert to HTML then extract text
+            # For simplicity, return raw text directly
             return text_content.strip()
         except Exception as e:
-            raise ValueError(f"Markdown解析失败: {str(e)}")
+            raise ValueError(f"Markdown parsing failed: {str(e)}")
     
     @staticmethod
     def parse_text(file_content: bytes) -> str:
-        """解析文本文件内容"""
+        """Parse text file content"""
         try:
-            # 尝试不同的编码
+            # Try different encodings
             encodings = ['utf-8', 'gbk', 'gb2312', 'latin-1']
             
             for encoding in encodings:
@@ -64,22 +64,22 @@ class FileParser:
                 except UnicodeDecodeError:
                     continue
             
-            # 如果所有编码都失败，使用utf-8并忽略错误
+            # If all encodings fail, use utf-8 and ignore errors
             return file_content.decode('utf-8', errors='ignore').strip()
         except Exception as e:
-            raise ValueError(f"文本解析失败: {str(e)}")
+            raise ValueError(f"Text parsing failed: {str(e)}")
     
     @classmethod
     def parse_file(cls, filename: str, file_content: bytes) -> Tuple[str, str]:
         """
-        解析文件内容
+        Parse file content
         
         Args:
-            filename: 文件名
-            file_content: 文件内容（bytes）
+            filename: File name
+            file_content: File content (bytes)
             
         Returns:
-            Tuple[file_type, parsed_content]: 文件类型和解析后的内容
+            Tuple[file_type, parsed_content]: File type and parsed content
         """
         file_type = cls.get_file_type(filename)
         

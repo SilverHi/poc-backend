@@ -4,17 +4,17 @@ from app.core.database import create_tables
 from app.api import agents, resources, config
 from config import settings
 
-# 创建数据库表
+# Create database tables
 create_tables()
 
-# 创建FastAPI应用
+# Create FastAPI application
 app = FastAPI(
     title=settings.project_name,
     version=settings.version,
     debug=settings.debug
 )
 
-# 配置CORS
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.backend_cors_origins,
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册路由
+# Register routes
 app.include_router(agents.router, prefix=f"{settings.api_v1_str}/agents", tags=["agents"])
 app.include_router(resources.router, prefix=f"{settings.api_v1_str}/resources", tags=["resources"])
 app.include_router(config.router, prefix=f"{settings.api_v1_str}/config", tags=["config"])
@@ -31,7 +31,7 @@ app.include_router(config.router, prefix=f"{settings.api_v1_str}/config", tags=[
 
 @app.get("/")
 def read_root():
-    """根路径"""
+    """Root path"""
     return {
         "message": settings.project_name,
         "version": settings.version,
@@ -42,7 +42,7 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    """健康检查"""
+    """Health check"""
     return {
         "status": "healthy",
         "version": settings.version,

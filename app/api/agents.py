@@ -15,14 +15,14 @@ def create_agent(
     agent_data: AgentCreate,
     db: Session = Depends(get_db)
 ):
-    """创建新的Agent"""
+    """Create new Agent"""
     try:
         service = AgentService()
         return service.create_agent(db, agent_data)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"创建Agent失败: {str(e)}"
+            detail=f"Failed to create Agent: {str(e)}"
         )
 
 
@@ -32,7 +32,7 @@ def get_agents(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """获取Agent列表"""
+    """Get Agent list"""
     service = AgentService()
     return service.get_agents(db, skip, limit)
 
@@ -42,13 +42,13 @@ def get_agent(
     agent_id: str,
     db: Session = Depends(get_db)
 ):
-    """根据ID获取Agent"""
+    """Get Agent by ID"""
     service = AgentService()
     agent = service.get_agent(db, agent_id)
     if not agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent不存在"
+            detail="Agent not found"
         )
     return agent
 
@@ -59,13 +59,13 @@ def update_agent(
     agent_data: AgentUpdate,
     db: Session = Depends(get_db)
 ):
-    """更新Agent"""
+    """Update Agent"""
     service = AgentService()
     updated_agent = service.update_agent(db, agent_id, agent_data)
     if not updated_agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent不存在"
+            detail="Agent not found"
         )
     return updated_agent
 
@@ -75,13 +75,13 @@ def delete_agent(
     agent_id: str,
     db: Session = Depends(get_db)
 ):
-    """删除Agent"""
+    """Delete Agent"""
     service = AgentService()
     success = service.delete_agent(db, agent_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Agent不存在"
+            detail="Agent not found"
         )
 
 
@@ -91,7 +91,7 @@ async def execute_agent(
     request: AgentExecuteRequest,
     db: Session = Depends(get_db)
 ):
-    """执行Agent"""
+    """Execute Agent"""
     try:
         service = AgentService()
         output, logs = await service.execute_agent(db, agent_id, request.input)
@@ -104,13 +104,13 @@ async def execute_agent(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"执行Agent失败: {str(e)}"
+            detail=f"Failed to execute Agent: {str(e)}"
         )
 
 
 @router.post("/optimize-prompt")
 async def optimize_prompt(request: dict):
-    """优化系统提示词"""
+    """Optimize system prompt"""
     try:
         original_prompt = request.get("prompt", "")
         if not original_prompt.strip():
@@ -118,59 +118,38 @@ async def optimize_prompt(request: dict):
         
         ai_service = AIService()
         
-        # 优化提示词的系统提示
-        optimization_system_prompt = """你是一个专业的AI提示词优化专家。你的任务是帮助用户改进他们的系统提示词，使其更加清晰、具体、有效。
+        # Check if OpenAI is configured
+        if not ai_service.is_configured():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="OpenAI API is not configured. Please set OPENAI_API_KEY in environment variables."
+            )
+        
+        # System prompt for optimization
+        optimization_system_prompt = """You are a professional AI prompt optimization expert. Your task is to help users improve their system prompts to make them clearer, more specific, and more effective.
 
-优化原则：
-1. 明确角色定位：确保AI的角色和专业领域清晰明确
-2. 具体化指令：将模糊的指令转换为具体、可操作的步骤
-3. 结构化输出：指定期望的输出格式和结构
-4. 添加约束条件：明确AI应该遵循的规则和限制
-5. 提供示例：在适当时候提供输出示例
-6. 优化语言：使用清晰、专业的语言表达
+Optimization principles:
+1. Clear role definition: Ensure the AI's role and professional domain are clearly defined
+2. Specific instructions: Convert vague instructions into specific, actionable steps
+3. Structured output: Specify expected output format and structure
+4. Add constraints: Clearly define rules and limitations the AI should follow
+5. Provide examples: Provide output examples when appropriate
+6. Optimize language: Use clear, professional language
 
-请分析用户提供的原始提示词，然后提供一个优化后的版本。优化后的提示词应该更加专业、具体、有效。
+Please analyze the original prompt provided by the user, then provide an optimized version. The optimized prompt should be more professional, specific, and effective.
 
-请直接输出完整的优化后的提示词，不要添加任何其他内容。
+Please output the complete optimized prompt directly without adding any other content.
 """
 
-        user_input = f"请帮我优化以下系统提示词：\n\n{original_prompt}"
+        user_input = f"Please help me optimize the following system prompt:\n\n{original_prompt}"
         
-        if ai_service.is_configured():
-            optimized_result, logs = await ai_service.execute_agent(
-                system_prompt=optimization_system_prompt,
-                user_input=user_input,
-                model="gpt-4o-mini",
-                temperature=0.3,  # 使用较低的温度以获得更一致的结果
-                max_tokens=2000
-            )
-        else:
-            # 如果没有配置OpenAI，使用模拟优化
-            optimized_result = f"""## 原始提示词分析
-原始提示词："{original_prompt}"
-
-分析：这是一个需要优化的提示词。
-
-## 优化建议
-建议增加更具体的角色定位、明确的任务描述和输出格式要求。
-
-## 优化后的提示词
-你是一个专业的{original_prompt}专家。请按照以下要求完成任务：
-
-1. 仔细分析用户的需求
-2. 提供专业、准确的建议
-3. 确保回答结构清晰、逻辑性强
-4. 使用专业术语，但保持易懂
-
-输出格式：
-- 使用清晰的段落结构
-- 重要信息用要点列出
-- 必要时提供具体示例
-
-请注意：始终保持专业态度，确保信息的准确性和实用性。
-
-注意：这是模拟优化结果，请配置OpenAI API以获得真实的优化效果。"""
-            logs = ["模拟优化完成"]
+        optimized_result, logs = await ai_service.execute_agent(
+            system_prompt=optimization_system_prompt,
+            user_input=user_input,
+            model="gpt-4o-mini",
+            temperature=0.3,  # Use lower temperature for more consistent results
+            max_tokens=2000
+        )
         
         return {
             "optimized_prompt": optimized_result,

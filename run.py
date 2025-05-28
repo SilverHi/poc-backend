@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-POC Backend 启动脚本
+POC Backend startup script
 """
 import uvicorn
 from config import settings

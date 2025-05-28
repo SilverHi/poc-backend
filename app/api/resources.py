@@ -16,7 +16,7 @@ async def upload_resource(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    """上传文件并创建资源"""
+    """Upload file and create resource"""
     try:
         resource = await resource_service.upload_file(db, file, title, description)
         return ResourceUploadResponse(
@@ -25,7 +25,7 @@ async def upload_resource(
             file_name=resource.file_name,
             file_size=resource.file_size,
             file_type=resource.file_type,
-            message="文件上传成功"
+            message="File uploaded successfully"
         )
     except ValueError as e:
         raise HTTPException(
@@ -35,7 +35,7 @@ async def upload_resource(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"文件上传失败: {str(e)}"
+            detail=f"File upload failed: {str(e)}"
         )
 
 
@@ -46,7 +46,7 @@ def get_resources(
     search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """获取资源列表"""
+    """Get resource list"""
     if search:
         return resource_service.search_resources(db, search, skip=skip, limit=limit)
     return resource_service.get_resources(db, skip=skip, limit=limit)
@@ -57,12 +57,12 @@ def get_resource(
     resource_id: str,
     db: Session = Depends(get_db)
 ):
-    """根据ID获取资源"""
+    """Get resource by ID"""
     resource = resource_service.get_resource(db, resource_id)
     if not resource:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="资源不存在"
+            detail="Resource not found"
         )
     return resource
 
@@ -73,12 +73,12 @@ def update_resource(
     resource_data: ResourceUpdate,
     db: Session = Depends(get_db)
 ):
-    """更新资源"""
+    """Update resource"""
     resource = resource_service.update_resource(db, resource_id, resource_data)
     if not resource:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="资源不存在"
+            detail="Resource not found"
         )
     return resource
 
@@ -88,10 +88,10 @@ def delete_resource(
     resource_id: str,
     db: Session = Depends(get_db)
 ):
-    """删除资源"""
+    """Delete resource"""
     success = resource_service.delete_resource(db, resource_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="资源不存在"
+            detail="Resource not found"
         ) 

@@ -7,13 +7,13 @@ from app.services.ai_service import AIService
 
 
 class AgentService:
-    """Agent服务，处理Agent的CRUD操作"""
+    """Agent service for handling Agent CRUD operations"""
     
     def __init__(self):
         self.ai_service = AIService()
     
     def create_agent(self, db: Session, agent_data: AgentCreate) -> Agent:
-        """创建新的Agent"""
+        """Create new Agent"""
         agent_id = str(uuid.uuid4())
         
         db_agent = Agent(
@@ -35,23 +35,23 @@ class AgentService:
         return db_agent
     
     def get_agent(self, db: Session, agent_id: str) -> Optional[Agent]:
-        """根据ID获取Agent"""
+        """Get Agent by ID"""
         return db.query(Agent).filter(Agent.id == agent_id).first()
     
     def get_agents(self, db: Session, skip: int = 0, limit: int = 100) -> List[Agent]:
-        """获取Agent列表"""
+        """Get Agent list"""
         return db.query(Agent).offset(skip).limit(limit).all()
     
     def update_agent(self, db: Session, agent_id: str, agent_data: AgentUpdate) -> Optional[Agent]:
-        """更新Agent"""
+        """Update Agent"""
         db_agent = self.get_agent(db, agent_id)
         if not db_agent:
             return None
         
-        # 更新字段
+        # Update fields
         update_data = agent_data.dict(exclude_unset=True)
         for field, value in update_data.items():
-            # 将schema字段名转换为数据库字段名
+            # Convert schema field names to database field names
             if field == "system_prompt":
                 field = "system_prompt"
             elif field == "max_tokens":
@@ -64,7 +64,7 @@ class AgentService:
         return db_agent
     
     def delete_agent(self, db: Session, agent_id: str) -> bool:
-        """删除Agent"""
+        """Delete Agent"""
         db_agent = self.get_agent(db, agent_id)
         if not db_agent:
             return False
@@ -74,25 +74,16 @@ class AgentService:
         return True
     
     async def execute_agent(self, db: Session, agent_id: str, user_input: str) -> tuple[str, List[str]]:
-        """执行Agent"""
+        """Execute Agent"""
         db_agent = self.get_agent(db, agent_id)
         if not db_agent:
-            raise ValueError(f"Agent {agent_id} 不存在")
+            raise ValueError(f"Agent {agent_id} does not exist")
         
-        # 根据是否配置了OpenAI API选择执行方式
-        if self.ai_service.is_configured():
-            return await self.ai_service.execute_agent(
-                system_prompt=db_agent.system_prompt,
-                user_input=user_input,
-                model=db_agent.model,
-                temperature=db_agent.temperature,
-                max_tokens=db_agent.max_tokens
-            )
-        else:
-            return await self.ai_service.mock_execute_agent(
-                system_prompt=db_agent.system_prompt,
-                user_input=user_input,
-                model=db_agent.model,
-                temperature=db_agent.temperature,
-                max_tokens=db_agent.max_tokens
-            ) 
+        # Always use the real AI service - will throw error if OpenAI is not configured
+        return await self.ai_service.execute_agent(
+            system_prompt=db_agent.system_prompt,
+            user_input=user_input,
+            model=db_agent.model,
+            temperature=db_agent.temperature,
+            max_tokens=db_agent.max_tokens
+        ) 

@@ -11,37 +11,37 @@ from config import settings
 
 
 class ResourceService:
-    """Resource服务，处理资源的CRUD操作和文件上传"""
+    """Resource service for handling resource CRUD operations and file uploads"""
     
     def __init__(self):
         self.file_parser = FileParser()
     
     async def upload_file(self, db: Session, file: UploadFile, title: str, description: str = None) -> Resource:
-        """上传文件并创建资源"""
-        # 检查文件大小
+        """Upload file and create resource"""
+        # Check file size
         if file.size > settings.max_file_size:
-            raise ValueError(f"文件大小超过限制 ({settings.max_file_size} bytes)")
+            raise ValueError(f"File size exceeds limit ({settings.max_file_size} bytes)")
         
-        # 生成唯一ID和文件路径
+        # Generate unique ID and file path
         resource_id = str(uuid.uuid4())
         file_extension = os.path.splitext(file.filename)[1]
         safe_filename = f"{resource_id}{file_extension}"
         file_path = os.path.join(settings.upload_dir, safe_filename)
         
-        # 读取文件内容
+        # Read file content
         file_content = await file.read()
         
-        # 解析文件内容
+        # Parse file content
         try:
             file_type, parsed_content = self.file_parser.parse_file(file.filename, file_content)
         except ValueError as e:
-            raise ValueError(f"文件解析失败: {str(e)}")
+            raise ValueError(f"File parsing failed: {str(e)}")
         
-        # 保存文件到磁盘
+        # Save file to disk
         async with aiofiles.open(file_path, 'wb') as f:
             await f.write(file_content)
         
-        # 创建数据库记录
+        # Create database record
         resource_data = ResourceCreate(
             title=title,
             description=description,
@@ -55,7 +55,7 @@ class ResourceService:
         return self.create_resource(db, resource_id, resource_data)
     
     def create_resource(self, db: Session, resource_id: str, resource_data: ResourceCreate) -> Resource:
-        """创建新的Resource"""
+        """Create new Resource"""
         db_resource = Resource(
             id=resource_id,
             title=resource_data.title,
@@ -73,20 +73,20 @@ class ResourceService:
         return db_resource
     
     def get_resource(self, db: Session, resource_id: str) -> Optional[Resource]:
-        """根据ID获取Resource"""
+        """Get Resource by ID"""
         return db.query(Resource).filter(Resource.id == resource_id).first()
     
     def get_resources(self, db: Session, skip: int = 0, limit: int = 100) -> List[Resource]:
-        """获取Resource列表"""
+        """Get Resource list"""
         return db.query(Resource).offset(skip).limit(limit).all()
     
     def update_resource(self, db: Session, resource_id: str, resource_data: ResourceUpdate) -> Optional[Resource]:
-        """更新Resource"""
+        """Update Resource"""
         db_resource = self.get_resource(db, resource_id)
         if not db_resource:
             return None
         
-        # 更新字段
+        # Update fields
         update_data = resource_data.dict(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_resource, field, value)
@@ -96,25 +96,25 @@ class ResourceService:
         return db_resource
     
     def delete_resource(self, db: Session, resource_id: str) -> bool:
-        """删除Resource"""
+        """Delete Resource"""
         db_resource = self.get_resource(db, resource_id)
         if not db_resource:
             return False
         
-        # 删除文件
+        # Delete file
         try:
             if os.path.exists(db_resource.file_path):
                 os.remove(db_resource.file_path)
         except Exception as e:
-            print(f"删除文件失败: {e}")
+            print(f"Failed to delete file: {e}")
         
-        # 删除数据库记录
+        # Delete database record
         db.delete(db_resource)
         db.commit()
         return True
     
     def search_resources(self, db: Session, query: str, skip: int = 0, limit: int = 100) -> List[Resource]:
-        """搜索资源"""
+        """Search resources"""
         return db.query(Resource).filter(
             Resource.title.contains(query) |
             Resource.description.contains(query) |

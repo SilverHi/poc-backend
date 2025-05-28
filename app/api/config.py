@@ -9,7 +9,7 @@ ai_service = AIService()
 
 @router.get("/openai", response_model=OpenAIConfig)
 def get_openai_config():
-    """获取OpenAI配置"""
+    """Get OpenAI configuration"""
     models = ai_service.get_available_models()
     
     return OpenAIConfig(
@@ -24,31 +24,31 @@ def get_openai_config():
 
 @router.post("/openai")
 def update_openai_config(config_data: OpenAIConfigUpdate):
-    """更新OpenAI配置"""
+    """Update OpenAI configuration"""
     try:
-        # 注意：在生产环境中，这里应该将配置保存到数据库或配置文件
-        # 目前只是演示，实际应用中需要实现持久化存储
+        # Note: In production environment, configuration should be saved to database or config file
+        # This is just a demonstration, actual implementation needs persistent storage
         
         if config_data.api_key:
-            # 这里应该安全地存储API密钥
+            # API key should be stored securely here
             pass
         
         if config_data.default_model:
-            # 更新默认模型
+            # Update default model
             pass
         
         if config_data.default_temperature is not None:
-            # 更新默认温度
+            # Update default temperature
             pass
         
         if config_data.default_max_tokens:
-            # 更新默认最大tokens
+            # Update default max tokens
             pass
         
-        return {"message": "配置更新成功"}
+        return {"message": "Configuration updated successfully"}
         
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"配置更新失败: {str(e)}"
+            detail=f"Configuration update failed: {str(e)}"
         ) 
