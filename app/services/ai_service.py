@@ -40,6 +40,29 @@ class AIService:
             }
         ]
     
+    def _combine_prompts(self, system_prompt: str, user_input: str) -> str:
+        """
+        将系统提示词和用户输入合并为单一提示词
+        
+        Args:
+            system_prompt: 系统提示词
+            user_input: 用户输入
+            
+        Returns:
+            str: 合并后的提示词
+        """
+        combined_prompt = f"""你是一个AI助手，请严格按照以下角色设定和指令来回答用户的问题：
+
+【角色设定和指令】
+{system_prompt}
+
+【用户问题】
+{user_input}
+
+请根据上述角色设定，对用户问题给出专业的回答："""
+        
+        return combined_prompt
+
     async def execute_agent(
         self,
         system_prompt: str,
@@ -74,7 +97,7 @@ class AIService:
             f"使用模型: {model}",
             f"温度参数: {temperature}",
             f"最大tokens: {max_tokens}",
-            "分析输入内容...",
+            "合并系统提示词和用户输入...",
             "调用OpenAI API...",
         ]
         
@@ -82,11 +105,13 @@ class AIService:
             # 模拟异步处理
             await asyncio.sleep(0.5)
             
+            # 将系统提示词合并到用户输入中
+            combined_prompt = self._combine_prompts(system_prompt, user_input)
+            
             response = self.client.chat.completions.create(
                 model=model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_input}
+                    {"role": "user", "content": combined_prompt}
                 ],
                 temperature=temperature,
                 max_tokens=max_tokens
@@ -126,7 +151,7 @@ class AIService:
             f"使用模型: {model}",
             f"温度参数: {temperature}",
             f"最大tokens: {max_tokens}",
-            "分析输入内容...",
+            "合并系统提示词和用户输入...",
             "应用处理逻辑...",
             "生成输出结果...",
         ]
