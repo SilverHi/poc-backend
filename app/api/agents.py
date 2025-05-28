@@ -131,15 +131,8 @@ async def optimize_prompt(request: dict):
 
 请分析用户提供的原始提示词，然后提供一个优化后的版本。优化后的提示词应该更加专业、具体、有效。
 
-请按以下格式回复：
-## 原始提示词分析
-[分析原始提示词的优缺点]
-
-## 优化建议
-[说明主要的优化方向和改进点]
-
-## 优化后的提示词
-[提供完整的优化后提示词]"""
+请直接输出完整的优化后的提示词，不要添加任何其他内容。
+"""
 
         user_input = f"请帮我优化以下系统提示词：\n\n{original_prompt}"
         
@@ -147,7 +140,7 @@ async def optimize_prompt(request: dict):
             optimized_result, logs = await ai_service.execute_agent(
                 system_prompt=optimization_system_prompt,
                 user_input=user_input,
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 temperature=0.3,  # 使用较低的温度以获得更一致的结果
                 max_tokens=2000
             )
