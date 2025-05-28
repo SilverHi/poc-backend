@@ -62,10 +62,20 @@ poc-backend/
 
 ### 1. 安装依赖
 
+#### 方式一：使用 requirements.txt（推荐）
+
 ```bash
 cd poc-backend
 pip install -r requirements.txt
 ```
+
+#### 方式二：直接安装（适用于内网环境或依赖冲突时）
+
+```bash
+pip install fastapi uvicorn sqlalchemy alembic python-multipart python-dotenv pydantic pydantic-settings openai PyPDF2 markdown aiofiles python-jose passlib httpx
+```
+
+> **注意**: 方式二会安装最新版本的依赖包，可能与项目测试的版本不同。如果遇到兼容性问题，请使用方式一。
 
 ### 2. 配置环境变量
 
