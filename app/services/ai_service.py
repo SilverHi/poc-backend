@@ -13,9 +13,30 @@ class AIService:
             openai.api_key = settings.openai_api_key
             self.client = openai.OpenAI(api_key=settings.openai_api_key)
     
+    def get_client(self) -> openai.OpenAI:
+        """
+        Get OpenAI client instance
+        
+        This method can be overridden in internal network environments
+        to provide custom client initialization logic (e.g., refresh token each time)
+        
+        Returns:
+            openai.OpenAI: OpenAI client instance
+        """
+        # Always create a new client instance to support token refresh scenarios
+        if not settings.openai_api_key:
+            raise ValueError("OpenAI API key is not configured")
+        
+        # Create new client instance each time for internal network compatibility
+        return openai.OpenAI(api_key=settings.openai_api_key)
+    
     def is_configured(self) -> bool:
         """Check if OpenAI is properly configured"""
-        return self.client is not None and settings.openai_api_key is not None
+        try:
+            # Don't cache the result, always check fresh
+            return settings.openai_api_key is not None and settings.openai_api_key.strip() != ""
+        except:
+            return False
     
     def get_available_models(self) -> List[dict]:
         """Get list of available models"""
@@ -105,7 +126,9 @@ Please provide a professional answer to the user's question based on the above r
             # Combine system prompt and user input
             combined_prompt = self._combine_prompts(system_prompt, user_input)
             
-            response = self.client.chat.completions.create(
+            # Use get_client() method instead of direct self.client access
+            client = self.get_client()
+            response = client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "user", "content": combined_prompt}
