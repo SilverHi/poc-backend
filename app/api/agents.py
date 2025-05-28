@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.schemas.agent import Agent, AgentCreate, AgentUpdate, AgentExecuteRequest, AgentExecuteResponse, AgentResponse
+from app.schemas.agent import Agent, AgentCreate, AgentUpdate, AgentExecuteRequest, AgentExecuteResponse
 from app.services.agent_service import AgentService
 from app.services.ai_service import AIService
 
@@ -10,15 +10,15 @@ router = APIRouter()
 agent_service = AgentService()
 
 
-@router.post("/", response_model=AgentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=Agent, status_code=status.HTTP_201_CREATED)
 def create_agent(
     agent_data: AgentCreate,
     db: Session = Depends(get_db)
 ):
     """创建新的Agent"""
     try:
-        service = AgentService(db)
-        return service.create_agent(agent_data)
+        service = AgentService()
+        return service.create_agent(db, agent_data)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -26,25 +26,25 @@ def create_agent(
         )
 
 
-@router.get("/", response_model=List[AgentResponse])
+@router.get("/", response_model=List[Agent])
 def get_agents(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
     """获取Agent列表"""
-    service = AgentService(db)
-    return service.get_all_agents()
+    service = AgentService()
+    return service.get_agents(db, skip, limit)
 
 
-@router.get("/{agent_id}", response_model=AgentResponse)
+@router.get("/{agent_id}", response_model=Agent)
 def get_agent(
     agent_id: str,
     db: Session = Depends(get_db)
 ):
     """根据ID获取Agent"""
-    service = AgentService(db)
-    agent = service.get_agent(agent_id)
+    service = AgentService()
+    agent = service.get_agent(db, agent_id)
     if not agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -53,15 +53,15 @@ def get_agent(
     return agent
 
 
-@router.put("/{agent_id}", response_model=AgentResponse)
+@router.put("/{agent_id}", response_model=Agent)
 def update_agent(
     agent_id: str,
     agent_data: AgentUpdate,
     db: Session = Depends(get_db)
 ):
     """更新Agent"""
-    service = AgentService(db)
-    updated_agent = service.update_agent(agent_id, agent_data)
+    service = AgentService()
+    updated_agent = service.update_agent(db, agent_id, agent_data)
     if not updated_agent:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -76,8 +76,8 @@ def delete_agent(
     db: Session = Depends(get_db)
 ):
     """删除Agent"""
-    service = AgentService(db)
-    success = service.delete_agent(agent_id)
+    service = AgentService()
+    success = service.delete_agent(db, agent_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -93,8 +93,8 @@ async def execute_agent(
 ):
     """执行Agent"""
     try:
-        service = AgentService(db)
-        output, logs = await service.execute_agent(agent_id, request.input)
+        service = AgentService()
+        output, logs = await service.execute_agent(db, agent_id, request.input)
         return AgentExecuteResponse(output=output, logs=logs)
     except ValueError as e:
         raise HTTPException(
