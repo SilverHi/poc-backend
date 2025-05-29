@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import create_tables
-from app.api import agents, resources, config
+from app.api import agents, resources, config, conversations
 from config import settings
 
 # Create database tables
@@ -27,6 +27,7 @@ app.add_middleware(
 app.include_router(agents.router, prefix=f"{settings.api_v1_str}/agents", tags=["agents"])
 app.include_router(resources.router, prefix=f"{settings.api_v1_str}/resources", tags=["resources"])
 app.include_router(config.router, prefix=f"{settings.api_v1_str}/config", tags=["config"])
+app.include_router(conversations.router, prefix=f"{settings.api_v1_str}/conversations", tags=["conversations"])
 
 
 @app.get("/")
