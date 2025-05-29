@@ -48,16 +48,16 @@ class AIService:
                 "description": "Fast and efficient model"
             },
             {
-                "id": "gpt-4",
-                "name": "GPT-4",
+                "id": "gpt-4o",
+                "name": "GPT-4o",
                 "max_tokens": 8000,
                 "description": "Most powerful model"
             },
             {
-                "id": "gpt-4-turbo-preview",
-                "name": "GPT-4 Turbo",
+                "id": "gpt-4o-mini",
+                "name": "GPT-4o Mini",
                 "max_tokens": 128000,
-                "description": "Latest GPT-4 model"
+                "description": "Latest GPT-4o model"
             }
         ]
     
