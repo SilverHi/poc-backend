@@ -93,15 +93,27 @@ async def execute_agent(
 ):
     """Execute Agent"""
     try:
+        # Add debug logging
+        print(f"🔍 Execute agent request:")
+        print(f"   Agent ID: {agent_id}")
+        print(f"   Request input type: {type(request.input)}")
+        print(f"   Request input length: {len(request.input) if request.input else 0}")
+        print(f"   Request input preview: {request.input[:100] if request.input else 'None'}...")
+        
         service = AgentService()
         output, logs = await service.execute_agent(db, agent_id, request.input)
         return AgentExecuteResponse(output=output, logs=logs)
     except ValueError as e:
+        print(f"❌ ValueError in execute_agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
+        print(f"❌ Exception in execute_agent: {str(e)}")
+        print(f"   Exception type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute Agent: {str(e)}"
