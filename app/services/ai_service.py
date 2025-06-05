@@ -61,28 +61,33 @@ class AIService:
             }
         ]
     
-    def _combine_prompts(self, system_prompt: str, user_input: str) -> str:
+    def _prepare_messages(self, system_prompt: str, user_input: str) -> List[dict]:
         """
-        Combine system prompt and user input into a single prompt
+        Prepare messages for OpenAI API with separate system and user roles
         
         Args:
             system_prompt: System prompt
             user_input: User input
             
         Returns:
-            str: Combined prompt
+            List[dict]: Messages formatted for OpenAI API
         """
-        combined_prompt = f"""You are an AI assistant. Please strictly follow the role settings and instructions below to answer user questions:
-
-【Role Settings and Instructions】
-{system_prompt}
-
-【User Question】
-{user_input}
-
-Please provide a professional answer to the user's question based on the above role settings:"""
+        messages = []
         
-        return combined_prompt
+        # Add system message if system prompt is provided
+        if system_prompt and system_prompt.strip():
+            messages.append({
+                "role": "system", 
+                "content": system_prompt
+            })
+        
+        # Add user message
+        messages.append({
+            "role": "user", 
+            "content": user_input
+        })
+        
+        return messages
 
     async def execute_agent(
         self,
@@ -118,21 +123,19 @@ Please provide a professional answer to the user's question based on the above r
             f"Using model: {model}",
             f"Temperature: {temperature}",
             f"Max tokens: {max_tokens}",
-            "Combining system prompt and user input...",
+            "Preparing messages with system and user roles...",
             "Calling OpenAI API...",
         ]
         
         try:
-            # Combine system prompt and user input
-            combined_prompt = self._combine_prompts(system_prompt, user_input)
+            # Prepare messages with separate system and user roles
+            messages = self._prepare_messages(system_prompt, user_input)
             
             # Use get_client() method instead of direct self.client access
             client = self.get_client()
             response = client.chat.completions.create(
                 model=model,
-                messages=[
-                    {"role": "user", "content": combined_prompt}
-                ],
+                messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens
             )
